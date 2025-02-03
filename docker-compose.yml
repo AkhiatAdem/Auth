@@ -1,0 +1,13 @@
+services:
+  auth-pg:
+    image: postgres:17
+    ports:
+      - 5432:5432
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: 123
+      POSTGRES_DB: bootcampAuth
+    networks:
+      - Gdg_bootcamp
+networks:
+  Gdg_bootcamp:
