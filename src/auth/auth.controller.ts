@@ -34,7 +34,7 @@ export class AuthController {
       if(!ipaddress || !device)
         return res.send({
           status : -1,
-          message : "access not allowed"
+          message : "bad request"
        })
 
 
@@ -44,4 +44,31 @@ export class AuthController {
       res.cookie("session", sessionId, { httpOnly: true, secure: true });
       return res.send(response);
     }
+
+    @Post('signup')
+    async signup(@Body() dto : AuthDto, @Res() res: Response,@Req() req: Request) {  
+        console.log(
+            dto
+        )
+        const device = req.headers['user-agent']
+        var ipaddress=req.ip??req.headers['x-forwarded-for'];
+        ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
+        if(!ipaddress || !device)
+          return res.send({
+            status : -1,
+            message : "bad request"
+         })
+  
+  
+
+
+       const signupData = await this.authService.signup(dto,ipaddress,device);
+        if (!signupData.sessionId) return res.send(signupData);
+       const { sessionId, ...response } = signupData;
+       res.cookie("session", sessionId, { httpOnly: true, secure: true });
+       return res.send(response);
+    }
+
+
+
 }
