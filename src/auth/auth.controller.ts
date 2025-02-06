@@ -1,12 +1,18 @@
-import { Body, Controller, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Param, Post, Query, Req, Res } from '@nestjs/common';
 import { AuthService } from './auth.service';
-import { AuthDto } from './auth.dto';
+import { AuthDto, checkCodeDto } from './auth.dto';
 import { Response } from "express";
 import { Request } from 'express';
-
+import { EmailService } from './email.service';
+import { PasswordService } from './password.service';
+import { SessionService } from './session.service';
 @Controller('auth')
 export class AuthController {
-    constructor(private authService: AuthService) {}
+    constructor(private authService: AuthService,
+                private passowrdService:PasswordService,
+                private emailService: EmailService,
+                private sessionService: SessionService
+      ) {}
 
     @Post("test")
     async test( @Res() res: Response,@Req() req: Request) {
@@ -21,7 +27,7 @@ export class AuthController {
        })
       console.log(sessionId)  
       
-      const result  =  await this.authService.verifySession(sessionId,ipaddress,device)
+      const result  =  await this.sessionService.verifySession(sessionId,ipaddress,device)
       return res.send(result);
     }
 
@@ -69,6 +75,67 @@ export class AuthController {
        return res.send(response);
     }
 
+
+
+    @Post('email-confirmation')
+    async confirmEmail(@Query('id') id:string){
+      if(!id){
+        return {
+          status:404,
+          message:"there is nothing here !"
+        }
+      }
+      return await this.emailService.checkEmailSession(id)
+      }
+
+      @Post('resetPassword')
+      async resetPassword(@Res() res: Response,@Req() req: Request , @Body() dto : {oldPwd:string,newPwd:string}){
+        const sessionId= Array.isArray(req.headers.session) ? req.headers.session[0] : req.headers.session;
+        const device = req.headers['user-agent']
+        var ipaddress=req.ip??req.headers['x-forwarded-for'];
+        ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
+        if(!sessionId || !ipaddress || !device)
+          return res.send({
+            status : -1,
+            message : "access not allowed"
+         })
+
+         return await this.passowrdService.resetPassowrd(dto.oldPwd,dto.newPwd,device,sessionId,ipaddress);
+
+      }
+
+      @Post('forgotPwd')
+      async forgotPwd(@Res() res: Response,@Req() req: Request ,@Body() dto: {email:string}){
+        const device = req.headers['user-agent']
+        var ipaddress=req.ip??req.headers['x-forwarded-for'];
+        ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
+         if(!ipaddress || !device)
+          return res.send({
+            status : -1,
+            message : "access not allowed"
+         })
+
+         const userdata = await  this.passowrdService.forgotPwd(dto.email,device,ipaddress);
+         if (!userdata.session) return res.send(userdata);
+         const { session, ...response } = userdata;
+         res.cookie("session", session, { httpOnly: true, secure: true });
+         return res.send(response);
+      }
+
+      @Post('checkCode')
+      async checkCode(@Res() res: Response,@Req() req: Request ,@Body() dto: checkCodeDto){
+        const sessionId= Array.isArray(req.headers.session) ? req.headers.session[0] : req.headers.session;
+        const device = req.headers['user-agent']
+        var ipaddress=req.ip??req.headers['x-forwarded-for'];
+        ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
+         if(!ipaddress || !device || !sessionId)
+          return res.send({
+            status : -1,
+            message : "access not allowed"
+         })
+
+         return await this.passowrdService.checkCode(dto.code,dto.newPwd,device,ipaddress,sessionId)
+      }
 
 
 }
