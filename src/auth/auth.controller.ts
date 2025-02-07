@@ -1,4 +1,4 @@
-import { Body, Controller, Param, Post, Query, Req, Res } from '@nestjs/common';
+import { Body, Controller, Param, Post, Query, Req, Res,Get } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { AuthDto, checkCodeDto } from './auth.dto';
 import { Response } from "express";
@@ -12,7 +12,7 @@ export class AuthController {
                 private passowrdService:PasswordService,
                 private emailService: EmailService,
                 private sessionService: SessionService
-      ) {}
+       ){}
 
     @Post("test")
     async test( @Res() res: Response,@Req() req: Request) {
@@ -49,6 +49,7 @@ export class AuthController {
       const { sessionId, ...response } = signinData;
       res.cookie("session", sessionId, { httpOnly: true, secure: true });
       return res.send(response);
+      return 1;
     }
 
     @Post('signup')
@@ -73,11 +74,12 @@ export class AuthController {
        const { sessionId, ...response } = signupData;
        res.cookie("session", sessionId, { httpOnly: true, secure: true });
        return res.send(response);
+       return 1;
     }
 
 
 
-    @Post('email-confirmation')
+    @Get('cEmail')
     async confirmEmail(@Query('id') id:string){
       if(!id){
         return {
@@ -100,8 +102,8 @@ export class AuthController {
             message : "access not allowed"
          })
 
-         return await this.passowrdService.resetPassowrd(dto.oldPwd,dto.newPwd,device,sessionId,ipaddress);
-
+          const result = await this.passowrdService.resetPassowrd(dto.oldPwd,dto.newPwd,device,sessionId,ipaddress);
+          return res.send(result)
       }
 
       @Post('forgotPwd')
@@ -114,7 +116,7 @@ export class AuthController {
             status : -1,
             message : "access not allowed"
          })
-
+         console.log("ip & device mail sender : "+ipaddress+"  "+device)
          const userdata = await  this.passowrdService.forgotPwd(dto.email,device,ipaddress);
          if (!userdata.session) return res.send(userdata);
          const { session, ...response } = userdata;
@@ -133,8 +135,10 @@ export class AuthController {
             status : -1,
             message : "access not allowed"
          })
+         console.log("ip & device code controller: "+ipaddress+"  "+device)
 
-         return await this.passowrdService.checkCode(dto.code,dto.newPwd,device,ipaddress,sessionId)
+         const result = await this.passowrdService.checkCode(dto.code,dto.newPwd,device,ipaddress,sessionId)
+         return res.send(result)
       }
 
 

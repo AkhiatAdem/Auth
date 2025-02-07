@@ -10,6 +10,10 @@ import { MailerModule } from "@nestjs-modules/mailer";
 import { createKeyv } from '@keyv/redis';
 import { Keyv } from 'keyv';
 import { CacheableMemory } from 'cacheable';
+import { AuthModule } from './auth/auth.module';
+import { SessionService } from './auth/session.service';
+import { EmailService } from './auth/email.service';
+import { PasswordService } from './auth/password.service';
 
 @Module({
   imports: [
@@ -46,8 +50,9 @@ import { CacheableMemory } from 'cacheable';
       }),
     }),
     DrizzleModule,
+    AuthModule,
   ],
   controllers: [AppController, AuthController],
-  providers: [AppService, AuthService],
+  providers: [AppService, AuthService,SessionService, EmailService, PasswordService],
 })
 export class AppModule {}
