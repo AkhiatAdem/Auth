@@ -14,9 +14,11 @@ import { AuthModule } from './auth/auth.module';
 import { SessionService } from './auth/session.service';
 import { EmailService } from './auth/email.service';
 import { PasswordService } from './auth/password.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
+    HttpModule,
     CacheModule.registerAsync({
       useFactory: async () => {
         return {

@@ -142,4 +142,22 @@ export class AuthController {
       }
 
 
+
+      @Get('google')
+      async googleAuth(@Res() res: Response,@Req() req: Request ){
+
+        const device = req.headers['user-agent']
+        var ipaddress=req.ip??req.headers['x-forwarded-for'];
+        ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
+        if(!ipaddress || !device)
+          return res.send({
+            status : -1,
+            message : "bad request"
+         })
+        const code = req.query.code as string;
+        const result = await this.authService.googleAuth(code,ipaddress,device);
+        return res.send(result)
+      }
+
+
 }

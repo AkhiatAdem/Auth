@@ -7,9 +7,10 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { PasswordService } from './password.service';
 import { DrizzleModule } from 'src/drizzle/drizzle.module';
 import { CacheModule } from '@nestjs/cache-manager';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
-  imports: [ConfigModule,DrizzleModule,CacheModule.register()], 
+  imports: [ConfigModule,DrizzleModule,CacheModule.register(),HttpModule], 
   controllers: [AuthController],
   providers: [AuthService, SessionService, EmailService, PasswordService], 
 })
