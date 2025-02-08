@@ -38,7 +38,7 @@ export class PasswordService {
     const user = await this.database.select().
     from(schema.users).
     where(eq(users.id,value.userId)).
-    then((data)=>data[0])
+    then(data=>data[0])
   
     if(!user){
       return {
@@ -46,10 +46,8 @@ export class PasswordService {
         message:"user not found !"
       }
     }
-    console.log(oldPwd)
-    console.log('Type of hashedpwd:', typeof oldPwd);
-
-    if(!(await argon2.verify(user.hashedpwd as string,oldPwd))){
+  
+    if(!(await argon2.verify(user.hashedpwd,oldPwd))){
       return {
         status:0,
         message:"old password is incorrect"
@@ -73,7 +71,7 @@ export class PasswordService {
 
     const resetCounter = await this.cacheManager.get<number>(`pwdResetCounter_${email}`) || 0;
   
-    if(resetCounter >= 5){
+    if(resetCounter >= 3){
       return {
         status:0,
         message:"too many requests"
@@ -103,6 +101,7 @@ export class PasswordService {
       subject: title,
       text: message,
     });
+  
       const prevSessionId = await this.cacheManager.get<string>(email)
       if(prevSessionId){
         console.log("destroying the old session");
@@ -110,11 +109,11 @@ export class PasswordService {
         await this.cacheManager.del(prevSessionId);
       }
       const sessionId = uuidv4();
-      const session : cashedCode= {
+      const session = {
         code:resetPwdCode,
         email:email,
         ipAddress : ipad,
-        device : device
+        source : device
       }
       await this.cacheManager.set(email, sessionId,1000*60*10);
       await this.cacheManager.set(sessionId, session,1000*60*10);
@@ -129,14 +128,7 @@ export class PasswordService {
           status:0,
           message:"session not valid"
         }
-      }console.log('Cached Value:', value);
-      console.log('Type of Cached Value:', typeof value);
-    
-      console.log("cache = "+ value)
-      console.log("ip & device: "+ipad+"  "+device)
-      console.log("ip & device of session : "+value.ipAddress+"  "+value.device)
-
-
+      }
       if((value.ipAddress != ipad )||value.device != device ){
         return {
           status:0,
@@ -160,11 +152,10 @@ export class PasswordService {
       await this.cacheManager.del(sessionId);
       await this.cacheManager.del(value.email);
   
-  
+
       return {
         status:1,
         message:"password changed succefully"
       }
     }
-
 }
