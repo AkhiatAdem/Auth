@@ -15,6 +15,7 @@ import { SessionService } from './auth/session.service';
 import { EmailService } from './auth/email.service';
 import { PasswordService } from './auth/password.service';
 import { HttpModule } from '@nestjs/axios';
+import { TwoFAservice } from './auth/twoFA.service';
 
 @Module({
   imports: [
@@ -55,6 +56,6 @@ import { HttpModule } from '@nestjs/axios';
     AuthModule,
   ],
   controllers: [AppController, AuthController],
-  providers: [AppService, AuthService,SessionService, EmailService, PasswordService],
+  providers: [AppService, AuthService,SessionService, EmailService, PasswordService,TwoFAservice],
 })
 export class AppModule {}

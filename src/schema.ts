@@ -11,5 +11,6 @@ import {
     id: uuid("id").defaultRandom().primaryKey(),
     email:varchar('email').unique().notNull(),
     hashedpwd:varchar('hashedpwd').notNull(),
-    isEmailConfirmed: boolean().default(false)
+    isEmailConfirmed: boolean().default(false),
+    is2FAactivated: boolean().default(false)
   });

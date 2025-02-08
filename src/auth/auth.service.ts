@@ -3,7 +3,8 @@ import { ConfigService } from '@nestjs/config';
 import { NodePgDatabase } from 'drizzle-orm/node-postgres';
 import { DrizzleAsyncProvider } from 'src/drizzle/drizzle.provider';
 import * as schema from "../schema";
-import { AuthDto ,GoogleTokensResult, GoogleUserResult} from './auth.dto';
+import { AuthDto } from './auth.dto';
+import { GoogleTokensResult, GoogleUserResult} from './types';
 import { users } from '../schema';
 import { eq } from "drizzle-orm";
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
@@ -14,6 +15,7 @@ import { SessionService } from './session.service';
 import * as qs from 'qs';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
+import { TwoFAservice } from './twoFA.service';
 
 @Injectable()
 export class AuthService {
@@ -24,11 +26,12 @@ export class AuthService {
         @Inject(CACHE_MANAGER) private cacheManager: Cache,
         private readonly sessionService: SessionService,
         private readonly emailService: EmailService,
-        private readonly httpService: HttpService
+        private readonly httpService: HttpService,
+        private twoFaservice: TwoFAservice
       ){}
     
 
-      async signin(dto: AuthDto ,ipAddress : string ,device : string) {
+      async signin(dto: AuthDto ,ipAddress : string ,device : string) :  Promise<{ status: number; message: string; sessionId: string }| { status: number; message: string; sessionId?: undefined }> {
         const email = dto.email;
         const pwd = dto.password;
         const userData = await this.database
@@ -39,6 +42,10 @@ export class AuthService {
           .then((userData) => userData[0]);
     
         if (!userData) return { status: 0, message: "User data is not correct" };
+
+        if(userData.is2FAactivated) return await this.twoFaservice.email2FA(userData.email,device,ipAddress);
+
+
         if (!(await argon2.verify(userData.hashedpwd as string, pwd)))
        return { status: 0, message: "User data is not correct" };
           console.log(userData)
@@ -153,22 +160,6 @@ console.log("qs.stringify exists?", typeof qs.stringify);
 
 
     return res1.data;
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 

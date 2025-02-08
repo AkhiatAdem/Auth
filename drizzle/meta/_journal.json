@@ -8,6 +8,13 @@
       "when": 1738692767648,
       "tag": "0000_majestic_junta",
       "breakpoints": true
+    },
+    {
+      "idx": 1,
+      "version": "7",
+      "when": 1739038242656,
+      "tag": "0001_outgoing_daimon_hellstrom",
+      "breakpoints": true
     }
   ]
 }

@@ -8,7 +8,7 @@ import { eq } from "drizzle-orm";
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager'; 
 import { MailerService } from "@nestjs-modules/mailer";
-import {cacheData} from './Cashtypes';
+import {cacheData} from './types';
 
 @Injectable()
 export class EmailService {
