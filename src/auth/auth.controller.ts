@@ -17,6 +17,8 @@ export class AuthController {
                 private twofaService:TwoFAservice
        ){}
 
+
+
     @Post("test")
     async test( @Res() res: Response,@Req() req: Request) {
       const data : {sessionId:string,device:string,ipaddress:string} | null = validateRequest(req,res);
@@ -25,9 +27,10 @@ export class AuthController {
       return res.send(result);
     }
 
+
+
     @Post("signin")
     async signin(@Body() dto: AuthDto, @Res() res: Response,@Req() req: Request) {
-
       const device = req.headers['user-agent']
       var ipaddress=req.ip??req.headers['x-forwarded-for'];
       ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
@@ -36,8 +39,6 @@ export class AuthController {
           status : -1,
           message : "bad request"
        })
-
-
       const signinData = await this.authService.signin(dto,ipaddress,device);
       if (!signinData.sessionId) return res.send(signinData);
       const { sessionId, ...response } = signinData;
@@ -45,6 +46,9 @@ export class AuthController {
       return res.send(response);
       return 1;
     }
+
+
+
 
     @Post('signup')
     async signup(@Body() dto : AuthDto, @Res() res: Response,@Req() req: Request) {  
@@ -59,10 +63,6 @@ export class AuthController {
             status : -1,
             message : "bad request"
          })
-  
-  
-
-
        const signupData = await this.authService.signup(dto,ipaddress,device);
         if (!signupData.sessionId) return res.send(signupData);
        const { sessionId, ...response } = signupData;
@@ -70,6 +70,8 @@ export class AuthController {
        return res.send(response);
        return 1;
     }
+
+
 
 
 
@@ -84,14 +86,18 @@ export class AuthController {
       return await this.emailService.checkEmailSession(id)
       }
 
+
+
+
       @Post('resetPassword')
       async resetPassword(@Res() res: Response,@Req() req: Request , @Body() dto : {oldPwd:string,newPwd:string}){
         const data : {sessionId:string,device:string,ipaddress:string} | null = validateRequest(req,res);
         if(!data)return;
-
           const result = await this.passowrdService.resetPassowrd(dto.oldPwd,dto.newPwd,data.device,data.sessionId,data.ipaddress);
           return res.send(result)
       }
+
+
 
       @Post('forgotPwd')
       async forgotPwd(@Res() res: Response,@Req() req: Request ,@Body() dto: {email:string}){
@@ -111,6 +117,10 @@ export class AuthController {
          return res.send(response);
       }
 
+
+
+
+
       @Post('checkCode')
       async checkCode(@Res() res: Response,@Req() req: Request ,@Body() dto: checkCodeDto){
         const data : {sessionId:string,device:string,ipaddress:string} | null = validateRequest(req,res);
@@ -120,6 +130,8 @@ export class AuthController {
          const result = await this.passowrdService.checkCode(dto.code,dto.newPwd,data.device,data.ipaddress,data.sessionId)
          return res.send(result)
       }
+
+
 
 
 
@@ -139,25 +151,39 @@ export class AuthController {
         return res.send(result)
       }
 
+
+
+
+
       @Get('2fa')
       async toggle2FA(@Res() res: Response,@Req() req: Request){
         const data : {sessionId:string,device:string,ipaddress:string} | null = validateRequest(req,res);
         if(!data)return;
-        return await this.twofaService.toggle2FA(data.sessionId,data.device,data.ipaddress);
+        const result = await this.twofaService.toggle2FA(data.sessionId,data.device,data.ipaddress);
+        return res.send(result)
       }
+
+
+
 
       @Post('code2FA')
       async confirmCode2FA(@Res() res: Response,@Req() req: Request,@Body() dto : {code:string}){
         const data : {sessionId:string,device:string,ipaddress:string} | null = validateRequest(req,res);
-        if(!data)return;
-        return await this.twofaService.confirmCode2FA(dto.code,data.ipaddress,data.device,data.sessionId);
+        if(!data)return -1;
+        const result =  await this.twofaService.confirmCode2FA(dto.code,data.ipaddress,data.device,data.sessionId);
+        return res.send(result)
       }
 
+
+
+      
       @Get('loggedDevices')
       async loggedIndevices(@Res() res: Response,@Req() req: Request){
         const data : {sessionId:string,device:string,ipaddress:string} | null = validateRequest(req,res);
-        if(!data)return;
-        return await this.twofaService.loggedInDevices(data.sessionId,data.ipaddress,data.device)
+        if(!data)return -1;
+        const result = await this.twofaService.loggedInDevices(data.sessionId,data.ipaddress,data.device)
+        return res.send(result)
+
       }
 
 

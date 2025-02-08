@@ -7,7 +7,7 @@ import { CACHE_MANAGER } from '@nestjs/cache-manager';
 import { Cache } from 'cache-manager'; 
 
 import { v4 as uuidv4 } from 'uuid';
-import {  cacheData, sessionData} from './Cashtypes';
+import {  cacheData, sessionData} from './types';
 //import { Session } from 'inspector/promises';
 
 

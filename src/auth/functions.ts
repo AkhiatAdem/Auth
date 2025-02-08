@@ -1,4 +1,4 @@
-import {cacheData} from "./Cashtypes"
+import {cacheData} from "./types"
 import { Request,Response } from "express";
 
 // export default function isSessionExpired(value: cacheData): boolean {

@@ -11,7 +11,7 @@ import { SessionService } from './session.service';
 import { HttpService } from '@nestjs/axios';
 import { MailerService } from '@nestjs-modules/mailer';
 import { v4 as uuidv4 } from 'uuid';
-import { sessionData,cashedCode,cacheData } from './Cashtypes';
+import { sessionData,cashedCode,cacheData } from './types';
 @Injectable()
 
 export class TwoFAservice{
@@ -66,17 +66,6 @@ export class TwoFAservice{
 
       async email2FA(email:string,device:string,ipad:string){
   
-        const user = await this.database.select().
-        from(schema.users).
-        where(eq(users.email,email)).
-        then(data=>data[0])
-    
-        if(!user){
-        return {
-            status: 404,
-            message: "user with this email does not exist"
-        }
-        }
         const logincode = Math.floor(100000 + Math.random() * 900000).toString();
     
         const title = `login detected`;
@@ -91,11 +80,11 @@ export class TwoFAservice{
         text: message,
         });
         const sessionId = uuidv4();
-        const session = {
+        const session: cashedCode = {
             code:logincode,
             email:email,
             ipAddress : ipad,
-            source : device
+            device : device
         }
         await this.cacheManager.set(email, sessionId,1000*60*10);
         await this.cacheManager.set(sessionId, session,1000*60*10);
@@ -113,6 +102,7 @@ export class TwoFAservice{
             message:"session not valid"
             }
         }
+        console.log(value)
         if((value.ipAddress != ipad )||value.device != device ){
             return {
             status:0,

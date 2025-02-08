@@ -8,10 +8,11 @@ import { PasswordService } from './password.service';
 import { DrizzleModule } from 'src/drizzle/drizzle.module';
 import { CacheModule } from '@nestjs/cache-manager';
 import { HttpModule } from '@nestjs/axios';
+import { TwoFAservice } from './twoFA.service';
 
 @Module({
   imports: [ConfigModule,DrizzleModule,CacheModule.register(),HttpModule], 
   controllers: [AuthController],
-  providers: [AuthService, SessionService, EmailService, PasswordService], 
+  providers: [AuthService, SessionService, EmailService, PasswordService,TwoFAservice], 
 })
 export class AuthModule {}

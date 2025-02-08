@@ -8,7 +8,7 @@ import { Cache } from 'cache-manager';
 import { MailerService } from "@nestjs-modules/mailer";
 import { v4 as uuidv4 } from 'uuid';
 import * as argon2 from "argon2";
-import { cashedCode, cacheData} from './Cashtypes';
+import { cashedCode, cacheData} from './types';
 import { CACHE_MANAGER } from '@nestjs/cache-manager';
 @Injectable()
 export class PasswordService {
