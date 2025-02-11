@@ -27,15 +27,11 @@ export class SessionService {
             status : 0,
             message : "session not valid"
           }
-        }else{
+        }
           if(value.ipAddress !=  ipAddress || value.source != device){
             await this.cacheManager.del(sessionId);
-            const sessions :sessionData[]= (await this.cacheManager.get<sessionData[]>(value.userId))??[]
-            const index = sessions.findIndex(session => session.ipAddress === ipAddress);
-            if(index !== undefined && index !== -1){
-              sessions.splice(index, 1);
-              await this.cacheManager.set(value.userId, [sessions,{sessionId,ipAddress}],5*60*60*1000);
-            } 
+            if(await this.cacheManager.get<sessionData>(value.userId+ipAddress))
+              await this.cacheManager.del(value.userId+ipAddress);
             return {
               status : 0,
               message : "session not valid"
@@ -45,7 +41,6 @@ export class SessionService {
             status : 1,
             message : "session valid"
           }
-        }
       }
 
 
@@ -54,13 +49,12 @@ export class SessionService {
 
 
       
-      async createSession (userid : string,ipAddress : string ,source : string ) : Promise<string>{
-        const sessions: sessionData[] = await this.cacheManager.get<sessionData[]>(userid) ?? [];
-        const dupSession =sessions.find(session => session.ipAddress === ipAddress)
+      async createSession (userid : string,ipAddress : string ,source : string ,rememberMe:boolean ) : Promise<string>{
+        const dupSession: sessionData|null = await this.cacheManager.get<sessionData>(userid+ipAddress);
+        console.log("creating session")
         if(dupSession){
-          const index = sessions.findIndex(session => session.ipAddress === ipAddress);
-          sessions.splice(index, 1);
-          console.log("destroying the old session");
+          console.log("destroying old session");
+          await this.cacheManager.del(userid+ipAddress);
           await this.cacheManager.del(dupSession.sessionId);
         }
         const sessionId = uuidv4();
@@ -70,12 +64,32 @@ export class SessionService {
           source,
           ipAddress
         }
-        console.log("caching . . . ")
-        await this.cacheManager.set(sessionId, session,5*60*60*1000);
-        await this.cacheManager.set(userid, [sessions,{sessionId,ipAddress}],5*60*60*1000);
+        console.log("caching .... ")
+        await this.cacheManager.set(sessionId, session,rememberMe?10*60*60*1000:5*60*60*1000);
+        await this.cacheManager.set(userid+ipAddress, {sessionId,ipAddress},rememberMe?10*60*60*1000:5*60*60*1000);
         console.log("cached")
         return sessionId;
-      
       }
 
+
+
+   async logoutDevice(deviceSession: string) {
+    const value = await this.cacheManager.get<cacheData>(deviceSession);
+    if(!value){
+      return {
+        status : 0,
+        message : "session does not exist"
+      }
     }
+    await this.cacheManager.del(deviceSession);
+    await this.cacheManager.del(value.userId+value.ipAddress);
+        return {
+          status : 1,
+          message : "logout successful"
+          } 
+      }
+      
+ 
+
+
+ }

@@ -16,6 +16,7 @@ import * as qs from 'qs';
 import { HttpService } from '@nestjs/axios';
 import { firstValueFrom } from 'rxjs';
 import { TwoFAservice } from './twoFA.service';
+import { dot } from 'node:test/reporters';
 
 @Injectable()
 export class AuthService {
@@ -43,13 +44,12 @@ export class AuthService {
     
         if (!userData) return { status: 0, message: "User data is not correct" };
 
-        if(userData.is2FAactivated) return await this.twoFaservice.email2FA(userData.email,device,ipAddress);
-
-
         if (!(await argon2.verify(userData.hashedpwd as string, pwd)))
        return { status: 0, message: "User data is not correct" };
           console.log(userData)
-        const sessionId = await this.sessionService.createSession(userData.id,ipAddress,device);
+
+        if(userData.is2FAactivated) return await this.twoFaservice.email2FA(userData.email,device,ipAddress);
+        const sessionId = await this.sessionService.createSession(userData.id,ipAddress,device,dto.rememberMe);
         console.log(sessionId)
         return {
           status: 1,message: "u r signed in",sessionId :sessionId
@@ -76,7 +76,7 @@ export class AuthService {
     .returning()
     .then((userData) => userData[0]);
     
-    const sessionId = await this.sessionService.createSession(userData.id,ipAddress,device);
+    const sessionId = await this.sessionService.createSession(userData.id,ipAddress,device,dto.rememberMe);
     await this.emailService.confirmEmail(dto.email,sessionId)
      return {status : 1, message : "signup successful",sessionId : sessionId}
 
@@ -139,11 +139,12 @@ console.log("qs.stringify exists?", typeof qs.stringify);
     if(!userData){
       const dto :AuthDto={
         email : googleUser.email,
-        password : this.config.get("OAUTH_PWD")as string
+        password : this.config.get("OAUTH_PWD")as string,
+        rememberMe : false,
       }
       return this.signup(dto ,ipAddress  ,device )
     }
-    const sessionId = await this.sessionService.createSession(userData.id,ipAddress,device);
+    const sessionId = await this.sessionService.createSession(userData.id,ipAddress,device,false);
     console.log(sessionId)
     return {
       status: 1,message: "u r signed in",sessionId :sessionId
