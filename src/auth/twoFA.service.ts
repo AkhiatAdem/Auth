@@ -122,10 +122,12 @@ export class TwoFAservice{
             .limit(1)
             .then((userData) => userData[0]);
 
-        await this.sessionService.createSession(userData.id,ipad,device);
+        const session = await this.sessionService.createSession(userData.id,ipad,device,false);
         return {
             status:1,
-            message: "you are logged in now"
+            message: "you are logged in now",
+            sessionId : session
+
         }
       }
 

@@ -8,20 +8,31 @@ import { Request,Response } from "express";
 //     return false;
 //   }
 
-export default function validateRequest(req: Request,res : Response){
+export default function validateRequest(req: Request,res : Response,flag : boolean){
 
-    const sessionId= Array.isArray(req.headers.session) ? req.headers.session[0] : req.headers.session;
       const device = req.headers['user-agent']
       var ipaddress=req.ip??req.headers['x-forwarded-for'];
       ipaddress = Array.isArray(ipaddress) ? ipaddress[0] : ipaddress;
-      if(!sessionId || !ipaddress || !device){
+      if(!ipaddress || !device){
          res.send({
             status : -1,
-            message : "access not allowed"
+            message : "bad request"
          })
          return null
       }
+      if(flag){
+         const sessionId= Array.isArray(req.headers.session) ? req.headers.session[0] : req.headers.session;
+         if(!sessionId){
+            res.send({
+               status : -1,
+               message : "access not allowed"
+            })
+            return null
+         }
+       return {sessionId,device,ipaddress}
+
+      }
+      return {device,ipaddress}
         
       
-       return {sessionId,device,ipaddress}
 }
